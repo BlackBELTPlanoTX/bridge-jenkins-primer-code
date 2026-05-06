@@ -65,10 +65,10 @@ pipeline {
                     } else {
                         bat '''
                             python -m venv %VENV_DIR%
-                            %VENV_DIR%\Scripts\python -m pip install --upgrade pip
-                            %VENV_DIR%\Scripts\python -m pip install -r requirements.txt
+                            %VENV_DIR%\\Scripts\\python -m pip install --upgrade pip
+                            %VENV_DIR%\\Scripts\\python -m pip install -r requirements.txt
                             echo Installed packages (venv):
-                            %VENV_DIR%\Scripts\python -m pip list --format=columns
+                            %VENV_DIR%\\Scripts\\python -m pip list --format=columns
                         '''
                     }
                 }

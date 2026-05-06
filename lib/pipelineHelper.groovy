@@ -131,6 +131,22 @@ void healthCheck(String port) {
 }
 
 // ---------------------------------------------------------------------------
+// observeContainerLogs
+// Waits for a configurable amount of time, then prints docker logs.
+// ---------------------------------------------------------------------------
+void observeContainerLogs(String containerName, String waitSeconds = '30') {
+    int waitTime = (waitSeconds ?: '30') as Integer
+    echo "[pipelineHelper] Waiting ${waitTime}s before collecting container logs..."
+    sleep time: waitTime, unit: 'SECONDS'
+    echo "[pipelineHelper] Container logs for '${containerName}':"
+    if (isUnix()) {
+        sh "docker logs ${containerName} || true"
+    } else {
+        bat "docker logs ${containerName} 2>nul"
+    }
+}
+
+// ---------------------------------------------------------------------------
 // cleanup
 // ---------------------------------------------------------------------------
 void cleanup(String containerName) {
@@ -187,6 +203,13 @@ void runPipeline(Map cfg) {
             healthCheck(cfg.port)
         }
 
+        stage('Observe Container Logs') {
+            echo '=============================='
+            echo ' STAGE: Observe Container Logs'
+            echo '=============================='
+            observeContainerLogs(cfg.container_name, cfg.log_wait_seconds ?: '30')
+        }
+
         echo '=============================='
         echo ' BUILD SUCCEEDED'
         echo " App : ${cfg.app_name}"
@@ -203,7 +226,11 @@ void runPipeline(Map cfg) {
         }
         throw err
     } finally {
-        cleanup(cfg.container_name)
+        if ((cfg.keep_container ?: 'false').toBoolean()) {
+            echo "[pipelineHelper] keep_container=true, skipping cleanup for '${cfg.container_name}'."
+        } else {
+            cleanup(cfg.container_name)
+        }
         echo "Pipeline complete. Build #${env.BUILD_NUMBER} finished."
     }
 }

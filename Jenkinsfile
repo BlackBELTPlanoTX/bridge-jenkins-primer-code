@@ -6,6 +6,8 @@ pipeline {
         CONTAINER_NAME = "flask-python-hello-app"
         APP_PORT      = "5000"
         VENV_DIR      = ".venv"
+        LOG_WAIT_SECONDS = "30"
+        KEEP_CONTAINER = "false"
     }
 
     stages {
@@ -155,6 +157,23 @@ pipeline {
                 echo "All health checks passed."
             }
         }
+
+        stage('Observe Container Logs') {
+            steps {
+                echo "=============================="
+                echo " STAGE: Observe Container Logs"
+                echo "=============================="
+                echo "Waiting ${env.LOG_WAIT_SECONDS}s before collecting container logs..."
+                sleep time: env.LOG_WAIT_SECONDS as Integer, unit: 'SECONDS'
+                script {
+                    if (isUnix()) {
+                        sh 'docker logs ${CONTAINER_NAME} || true'
+                    } else {
+                        bat 'docker logs %CONTAINER_NAME% 2>nul || echo No container logs available'
+                    }
+                }
+            }
+        }
     }
 
     post {
@@ -176,12 +195,16 @@ pipeline {
             }
         }
         always {
-            echo "Cleaning up container '${env.CONTAINER_NAME}'..."
             script {
-                if (isUnix()) {
-                    sh 'docker rm -f ${CONTAINER_NAME} || true'
+                if (env.KEEP_CONTAINER?.toBoolean()) {
+                    echo "KEEP_CONTAINER=true, skipping cleanup. Container '${env.CONTAINER_NAME}' is left running."
                 } else {
-                    bat 'docker rm -f %CONTAINER_NAME% 2>nul'
+                    echo "Cleaning up container '${env.CONTAINER_NAME}'..."
+                    if (isUnix()) {
+                        sh 'docker rm -f ${CONTAINER_NAME} || true'
+                    } else {
+                        bat 'docker rm -f %CONTAINER_NAME% 2>nul'
+                    }
                 }
             }
             echo "Pipeline complete. Build #${env.BUILD_NUMBER} finished."

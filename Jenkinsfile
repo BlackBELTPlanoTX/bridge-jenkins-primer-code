@@ -6,8 +6,8 @@ pipeline {
         CONTAINER_NAME = "flask-python-hello-app"
         APP_PORT      = "5000"
         VENV_DIR      = ".venv"
-        LOG_WAIT_SECONDS = "30"
-        KEEP_CONTAINER = "false"
+        LOG_FOLLOW_SECONDS = "30"
+        KEEP_CONTAINER = "true"
     }
 
     stages {
@@ -129,47 +129,17 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
-            steps {
-                echo "=============================="
-                echo " STAGE: Health Check"
-                echo "=============================="
-                echo "Checking app is reachable on port ${env.APP_PORT}..."
-                script {
-                    if (isUnix()) {
-                        sh '''
-                            set -e
-                            echo "GET / ..."
-                            curl -sf http://127.0.0.1:${APP_PORT}/ && echo " -> OK"
-                            echo "GET /hello ..."
-                            curl -sf http://127.0.0.1:${APP_PORT}/hello && echo " -> OK"
-                        '''
-                    } else {
-                        bat '''
-                            powershell -NoProfile -Command ^
-                                "Write-Host 'GET / ...'; ^
-                                 (Invoke-WebRequest -UseBasicParsing http://127.0.0.1:$env:APP_PORT/).Content; ^
-                                 Write-Host 'GET /hello ...'; ^
-                                 (Invoke-WebRequest -UseBasicParsing http://127.0.0.1:$env:APP_PORT/hello).Content"
-                        '''
-                    }
-                }
-                echo "All health checks passed."
-            }
-        }
-
         stage('Observe Container Logs') {
             steps {
                 echo "=============================="
                 echo " STAGE: Observe Container Logs"
                 echo "=============================="
-                echo "Waiting ${env.LOG_WAIT_SECONDS}s before collecting container logs..."
-                sleep time: env.LOG_WAIT_SECONDS as Integer, unit: 'SECONDS'
+                echo "Following container logs immediately for ${env.LOG_FOLLOW_SECONDS}s..."
                 script {
                     if (isUnix()) {
-                        sh 'docker logs ${CONTAINER_NAME} || true'
+                        sh 'timeout ${LOG_FOLLOW_SECONDS}s docker logs -f ${CONTAINER_NAME} || true'
                     } else {
-                        bat 'docker logs %CONTAINER_NAME% 2>nul || echo No container logs available'
+                        bat 'powershell -NoProfile -Command "$sec=[int]$env:LOG_FOLLOW_SECONDS; $job = Start-Job -ScriptBlock { param($n) docker logs -f $n } -ArgumentList $env:CONTAINER_NAME; Wait-Job -Job $job -Timeout $sec | Out-Null; Stop-Job -Job $job -ErrorAction SilentlyContinue; Receive-Job -Job $job -ErrorAction SilentlyContinue"'
                     }
                 }
             }
@@ -195,18 +165,7 @@ pipeline {
             }
         }
         always {
-            script {
-                if (env.KEEP_CONTAINER?.toBoolean()) {
-                    echo "KEEP_CONTAINER=true, skipping cleanup. Container '${env.CONTAINER_NAME}' is left running."
-                } else {
-                    echo "Cleaning up container '${env.CONTAINER_NAME}'..."
-                    if (isUnix()) {
-                        sh 'docker rm -f ${CONTAINER_NAME} || true'
-                    } else {
-                        bat 'docker rm -f %CONTAINER_NAME% 2>nul'
-                    }
-                }
-            }
+            echo "Cleanup disabled. Container '${env.CONTAINER_NAME}' is left running."
             echo "Pipeline complete. Build #${env.BUILD_NUMBER} finished."
         }
     }

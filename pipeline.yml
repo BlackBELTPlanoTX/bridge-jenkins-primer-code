@@ -10,5 +10,5 @@ container_name: flask-python-hello-app
 port:           5000
 python_cmd:     python3
 venv_dir:       .venv
-log_wait_seconds: 30
-keep_container: false
+log_follow_seconds: 30
+keep_container: true

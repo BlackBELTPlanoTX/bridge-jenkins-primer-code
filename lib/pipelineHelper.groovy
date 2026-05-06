@@ -132,17 +132,15 @@ void healthCheck(String port) {
 
 // ---------------------------------------------------------------------------
 // observeContainerLogs
-// Waits for a configurable amount of time, then prints docker logs.
+// Follows logs immediately for a configurable time window.
 // ---------------------------------------------------------------------------
-void observeContainerLogs(String containerName, String waitSeconds = '30') {
-    int waitTime = (waitSeconds ?: '30') as Integer
-    echo "[pipelineHelper] Waiting ${waitTime}s before collecting container logs..."
-    sleep time: waitTime, unit: 'SECONDS'
-    echo "[pipelineHelper] Container logs for '${containerName}':"
+void observeContainerLogs(String containerName, String followSeconds = '30') {
+    int followTime = (followSeconds ?: '30') as Integer
+    echo "[pipelineHelper] Following container logs immediately for ${followTime}s..."
     if (isUnix()) {
-        sh "docker logs ${containerName} || true"
+        sh "timeout ${followTime}s docker logs -f ${containerName} || true"
     } else {
-        bat "docker logs ${containerName} 2>nul"
+        bat "powershell -NoProfile -Command \"\$sec=${followTime}; \$job = Start-Job -ScriptBlock { param(\$n) docker logs -f \$n } -ArgumentList '${containerName}'; Wait-Job -Job \$job -Timeout \$sec | Out-Null; Stop-Job -Job \$job -ErrorAction SilentlyContinue; Receive-Job -Job \$job -ErrorAction SilentlyContinue\""
     }
 }
 
@@ -196,18 +194,11 @@ void runPipeline(Map cfg) {
             deployContainer(cfg.container_name, cfg.image_name, cfg.port)
         }
 
-        stage('Health Check') {
-            echo '=============================='
-            echo ' STAGE: Health Check'
-            echo '=============================='
-            healthCheck(cfg.port)
-        }
-
         stage('Observe Container Logs') {
             echo '=============================='
             echo ' STAGE: Observe Container Logs'
             echo '=============================='
-            observeContainerLogs(cfg.container_name, cfg.log_wait_seconds ?: '30')
+            observeContainerLogs(cfg.container_name, cfg.log_follow_seconds ?: '30')
         }
 
         echo '=============================='
@@ -226,11 +217,7 @@ void runPipeline(Map cfg) {
         }
         throw err
     } finally {
-        if ((cfg.keep_container ?: 'false').toBoolean()) {
-            echo "[pipelineHelper] keep_container=true, skipping cleanup for '${cfg.container_name}'."
-        } else {
-            cleanup(cfg.container_name)
-        }
+        echo "[pipelineHelper] Cleanup disabled. Container '${cfg.container_name}' is left running."
         echo "Pipeline complete. Build #${env.BUILD_NUMBER} finished."
     }
 }

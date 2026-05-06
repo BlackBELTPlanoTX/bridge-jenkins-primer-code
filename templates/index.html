@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PulseLine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <div class="noise"></div>
+
+    <header class="topbar">
+        <div class="brand">PulseLine</div>
+        <nav class="menu">
+            <a href="#">Feed</a>
+            <a href="#">Discover</a>
+            <a href="#">Messages</a>
+        </nav>
+        <button class="cta">Create</button>
+    </header>
+
+    <main class="layout">
+        <aside class="panel left-panel reveal reveal-1">
+            <h2>Communities</h2>
+            <ul class="list">
+                <li>Design Daily</li>
+                <li>Code and Coffee</li>
+                <li>Indie Builders</li>
+                <li>Travel Frames</li>
+            </ul>
+            <div class="chip-row">
+                <span class="chip">UI</span>
+                <span class="chip">AI</span>
+                <span class="chip">Startups</span>
+            </div>
+        </aside>
+
+        <section class="feed reveal reveal-2">
+            <article class="composer card">
+                <div class="avatar"></div>
+                <div class="composer-text">Share your next idea with your network...</div>
+                <button class="soft">Post</button>
+            </article>
+
+            <article class="card post">
+                <div class="post-head">
+                    <div class="avatar accent"></div>
+                    <div>
+                        <h3>Aria Patel</h3>
+                        <p>@ariacodes • 2h</p>
+                    </div>
+                </div>
+                <p>Finished a new dashboard concept with kinetic cards and grain overlays. Visual depth matters when data is dense.</p>
+                <div class="mock-image image-one"></div>
+                <div class="post-stats">
+                    <span>241 likes</span>
+                    <span>38 comments</span>
+                    <span>14 shares</span>
+                </div>
+            </article>
+
+            <article class="card post">
+                <div class="post-head">
+                    <div class="avatar warm"></div>
+                    <div>
+                        <h3>Marco Lin</h3>
+                        <p>@pixelmarco • 5h</p>
+                    </div>
+                </div>
+                <p>Building in public week 8: moved from bland layouts to layered visual systems. Retention up, bounce down.</p>
+                <div class="mock-image image-two"></div>
+                <div class="post-stats">
+                    <span>329 likes</span>
+                    <span>54 comments</span>
+                    <span>22 shares</span>
+                </div>
+            </article>
+        </section>
+
+        <aside class="panel right-panel reveal reveal-3">
+            <h2>Trending</h2>
+            <ul class="trend-list">
+                <li><strong>#MotionDesign</strong><span>18.4K posts</span></li>
+                <li><strong>#MicroSaaS</strong><span>12.1K posts</span></li>
+                <li><strong>#FlaskShowcase</strong><span>8.7K posts</span></li>
+            </ul>
+            <div class="card mini">
+                <h3>Live Room</h3>
+                <p>Product critique in 12 minutes</p>
+                <button class="soft">Join</button>
+            </div>
+        </aside>
+    </main>
+</body>
+</html>

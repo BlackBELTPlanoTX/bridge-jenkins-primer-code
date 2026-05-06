@@ -1,0 +1,12 @@
+# ---------------------------------------------------------------------------
+# pipeline.yml
+# Central configuration consumed by Jenkinsfile.inactive via pipelineHelper.
+# Change values here and the whole pipeline adapts automatically.
+# ---------------------------------------------------------------------------
+
+app_name:       flask-python-hello
+image_name:     flask-python-hello:local
+container_name: flask-python-hello-app
+port:           5000
+python_cmd:     python3
+venv_dir:       .venv

@@ -1,0 +1,17 @@
+/**
+ * Jenkinsfile.inactive
+ *
+ * Scripted pipeline — every stage lives inside lib/pipelineHelper.groovy.
+ * All config comes from pipeline.yml.
+ * This file only does three things: checkout, load the helper, run.
+ *
+ * No extra Jenkins plugins required — uses only the built-in `load` step.
+ * To activate: rename this to `Jenkinsfile`.
+ */
+
+node {
+    checkout scm
+    def helper = load 'lib/pipelineHelper.groovy'
+    def cfg    = helper.parseConfig('pipeline.yml')
+    helper.runPipeline(cfg)
+}
